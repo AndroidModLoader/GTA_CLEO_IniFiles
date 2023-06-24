@@ -1,0 +1,45 @@
+name: AML Mod Compiler
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout repository...
+      uses: actions/checkout@v3
+
+    - name: Download AndroidModLoader`s mod template...
+      uses: wei/wget@v1
+      with:
+        args: -O ./AML_src.zip https://github.com/RusJJ/AndroidModLoader/archive/refs/heads/main.zip
+
+    - name: Install AndroidModLoader`s mod template...
+      run: |
+        unzip ./AML_src.zip
+        mv ./AndroidModLoader-main/mod ./mod
+
+    - name: Get CLEOMod...
+      uses: wei/wget@v1
+      with:
+        args: -O ./cleo.h https://github.com/AndroidModLoader/GTA_CLEOMod/raw/RUSJJ_CLEO_MOD/cleo.h
+
+    - name: Install Android NDK (r24)...
+      uses: nttld/setup-ndk@v1.2.0
+      with:
+        ndk-version: r24
+        local-cache: true
+
+    - name: Build the code...
+      run: ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk NDK_APPLICATION_MK=./Application.mk
+
+    - name: Upload the mod!
+      uses: actions/upload-artifact@v3
+      with:
+        name: compiled-mod.zip
+        path: ./libs

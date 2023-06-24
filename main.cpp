@@ -6,12 +6,12 @@
 #include "thirdparty/inipp.h"
 inipp::Ini<char> ini;
 
-#include "icleo.h"
-ICLEO* cleo = nullptr;
+#include "cleo.h"
+cleo_ifs_t* cleo = nullptr;
 
-MYMOD(net.alexblade.rusjj.inifiles, CLEO4 IniFiles, 1.0, Alexander Blade & RusJJ)
+MYMOD(net.alexblade.rusjj.inifiles, CLEO4 IniFiles, 1.0.1, Alexander Blade & RusJJ)
 BEGIN_DEPLIST()
-    ADD_DEPENDENCY_VER(net.rusjj.cleolib, 2.0.1.1)
+    ADD_DEPENDENCY_VER(net.rusjj.cleolib, 2.0.1.3)
 END_DEPLIST()
 
 #define __decl_op(__name, __int)	const char* NAME_##__name = #__name; const uint16_t OP_##__name = __int;
@@ -21,12 +21,12 @@ END_DEPLIST()
 #define __op_name_match(x) 			opcode == OP_##x || strcmp(name, NAME_##x) == 0
 #define __reg_op_func(x, h) 		__reg_opcode(OP_##x, h); __reg_func(NAME_##x, h);
 
-__decl_op(READ_INT_FROM_INI_FILE, 0x0AF0); // 0AF0=4,%4d% = read_int_from_ini_file %1s% section %2s% key %3s%
-__decl_op(WRITE_INT_TO_INI_FILE, 0x0AF1); // 0AF1=4,write_int %1d% to_ini_file %2s% section %3s% key %4s%
-__decl_op(READ_FLOAT_FROM_INI_FILE, 0x0AF2); // 0AF2=4,%4d% = read_float_from_ini_file %1s% section %2s% key %3s%
-__decl_op(WRITE_FLOAT_TO_INI_FILE, 0x0AF3); // 0AF3=4,write_float %1d% to_ini_file %2s% section %3s% key %4s%
-__decl_op(READ_STRING_FROM_INI_FILE, 0x0AF4); // 0AF4=4,%4d% = read_string_from_ini_file %1s% section %2s% key %3s%
-__decl_op(WRITE_STRING_TO_INI_FILE, 0x0AF5); // 0AF5=4,write_string %1s% to_ini_file %2s% section %3s% key %4s%
+__decl_op(READ_INT_FROM_INI_FILE, 0x0AF0);      // 0AF0=4,%4d% = read_int_from_ini_file %1s% section %2s% key %3s%
+__decl_op(WRITE_INT_TO_INI_FILE, 0x0AF1);       // 0AF1=4,write_int %1d% to_ini_file %2s% section %3s% key %4s%
+__decl_op(READ_FLOAT_FROM_INI_FILE, 0x0AF2);    // 0AF2=4,%4d% = read_float_from_ini_file %1s% section %2s% key %3s%
+__decl_op(WRITE_FLOAT_TO_INI_FILE, 0x0AF3);     // 0AF3=4,write_float %1d% to_ini_file %2s% section %3s% key %4s%
+__decl_op(READ_STRING_FROM_INI_FILE, 0x0AF4);   // 0AF4=4,%4d% = read_string_from_ini_file %1s% section %2s% key %3s%
+__decl_op(WRITE_STRING_TO_INI_FILE, 0x0AF5);    // 0AF5=4,write_string %1s% to_ini_file %2s% section %3s% key %4s%
 
 std::string sGameRoot = "/storage/emulated/0/Android/data/com.rockstargames.gtasa/files/";
 static char szConvertedValue[16];
@@ -122,9 +122,9 @@ void WRITE_FLOAT_TO_INI_FILE(__handler_params)
 const char* valRes;
 void READ_STRING_FROM_INI_FILE(__handler_params)
 {
-    //cleo->GetPointerToScriptVar(handle)->i = 0;
-    //logger->Error("Opcode 0x%X (READ_STRING_FROM_INI_FILE) is unimplemented!", opcode);
-    //return;
+    cleo->GetPointerToScriptVar(handle)->i = 0;
+    logger->Error("Opcode 0x%X (READ_STRING_FROM_INI_FILE) is unimplemented!", opcode);
+    return;
 
     char filename[128], section[64], key[64];
     valRes = ""; int i = 0;
@@ -174,7 +174,7 @@ extern "C" void OnModLoad()
 {
     logger->SetTag("[CLEO] IniFiles");
     logger->Info("Starting...");
-    if(!(cleo = (ICLEO*)GetInterface("CLEO")))
+    if(!(cleo = (cleo_ifs_t*)GetInterface("CLEO")))
     {
         logger->Error("Cannot load a mod: CLEO's interface is unknown!");
         return;
