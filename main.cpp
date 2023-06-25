@@ -9,7 +9,7 @@ inipp::Ini<char> ini;
 #include "cleo.h"
 cleo_ifs_t* cleo = nullptr;
 
-MYMOD(net.alexblade.rusjj.inifiles, CLEO4 IniFiles, 1.0.1, Alexander Blade & RusJJ)
+MYMOD(net.alexblade.rusjj.inifiles, CLEO4 IniFiles, 1.1, Alexander Blade & RusJJ)
 BEGIN_DEPLIST()
     ADD_DEPENDENCY_VER(net.rusjj.cleolib, 2.0.1.3)
 END_DEPLIST()
@@ -119,15 +119,11 @@ void WRITE_FLOAT_TO_INI_FILE(__handler_params)
     if(os.is_open()) ini.generate(os);
 }
 
-const char* valRes;
+char valRes[100];
 void READ_STRING_FROM_INI_FILE(__handler_params)
 {
-    cleo->GetPointerToScriptVar(handle)->i = 0;
-    logger->Error("Opcode 0x%X (READ_STRING_FROM_INI_FILE) is unimplemented!", opcode);
-    return;
-
     char filename[128], section[64], key[64];
-    valRes = ""; int i = 0;
+    valRes[0] = 0; int i = 0;
     cleo->ReadStringLong(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
     cleo->ReadStringLong(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
     cleo->ReadStringLong(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
@@ -140,18 +136,33 @@ void READ_STRING_FROM_INI_FILE(__handler_params)
     if(is.is_open())
     {
         ini.parse(is);
-        valRes = ini.sections[section][key].c_str();
+        sprintf(valRes, "%s", ini.sections[section][key].c_str());
     }
-    cleo->GetPointerToScriptVar(handle)->i = (int)valRes;
-    //char* dst = (char*)cleo->ReadParam(handle);
-    //memcpy(dst, ini.sections[section][key].c_str(), 3); dst[3] = '\0';
+
+    if(**(uint8_t**)((int)handle + 20) > 8)
+    {
+        char* dst = (char*)cleo->GetPointerToScriptVar(handle);
+        memcpy(dst, valRes, 15); dst[15] = 0;
+    }
+    else
+    {
+        char* dst = (char*)cleo->ReadParam(handle)->i;
+        strcpy(dst, valRes);
+    }
 }
 
 void WRITE_STRING_TO_INI_FILE(__handler_params)
 {
     char filename[128], section[64], key[64], value[128];
     int i = 0;
-    cleo->ReadStringLong(handle, value, sizeof(value)); value[sizeof(value)-1] = 0;
+    if(**(uint8_t**)((int)handle + 20) > 8) // Is this gonna work..?
+    {
+        cleo->ReadStringLong(handle, value, sizeof(value)); value[sizeof(value)-1] = 0;
+    }
+    else
+    {
+        strcpy(value, (char*)cleo->ReadParam(handle)->i);
+    }
     cleo->ReadStringLong(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
     cleo->ReadStringLong(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
     cleo->ReadStringLong(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
