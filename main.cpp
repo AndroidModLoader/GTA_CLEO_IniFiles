@@ -146,7 +146,7 @@ void READ_STRING_FROM_INI_FILE(__handler_params)
     }
     else
     {
-        char* dst = (char*)cleo->ReadParam(handle)->i;
+        char* dst = (char*)cleo->ReadParam(handle);
         strcpy(dst, valRes);
     }
 }
@@ -161,7 +161,7 @@ void WRITE_STRING_TO_INI_FILE(__handler_params)
     }
     else
     {
-        strcpy(value, (char*)cleo->ReadParam(handle)->i);
+        strcpy(value, (char*)cleo->ReadParam(handle));
     }
     cleo->ReadStringLong(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
     cleo->ReadStringLong(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
