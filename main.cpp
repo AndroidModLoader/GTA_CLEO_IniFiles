@@ -40,6 +40,10 @@ inline char* CLEO_ReadStringEx(void* handle, char* buf, size_t size)
 
     switch(byte)
     {
+        case 0x9:
+            cleo->ReadParam(handle); // Need to collect results before that
+            return cleo->ReadString8byte(handle, buf, size) ? buf : NULL;
+            
         case 0xA:
         case 0xB:
         case 0x10:
