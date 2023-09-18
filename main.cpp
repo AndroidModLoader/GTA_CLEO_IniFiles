@@ -4,12 +4,12 @@
 #include <fstream>
 
 #include "thirdparty/inipp.h"
-inipp::Ini<char> ini;
+//inipp::Ini<char> ini;
 
 #include "cleo.h"
 cleo_ifs_t* cleo = nullptr;
 
-MYMOD(net.alexblade.rusjj.inifiles, CLEO4 IniFiles, 1.1, Alexander Blade & RusJJ)
+MYMOD(net.alexblade.rusjj.inifiles, CLEO4 IniFiles, 1.2, Alexander Blade & RusJJ)
 BEGIN_DEPLIST()
     ADD_DEPENDENCY_VER(net.rusjj.cleolib, 2.0.1.3)
 END_DEPLIST()
@@ -65,6 +65,7 @@ inline char* CLEO_ReadStringEx(void* handle, char* buf, size_t size)
 
 CLEO_Fn(READ_INT_FROM_INI_FILE)
 {
+    inipp::Ini<char> ini;
     char filename[128], section[64], key[64];
     int result = 0, i = 0;
     cleo->ReadStringLong(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
@@ -86,6 +87,7 @@ CLEO_Fn(READ_INT_FROM_INI_FILE)
 
 CLEO_Fn(WRITE_INT_TO_INI_FILE)
 {
+    inipp::Ini<char> ini;
     char filename[128], section[64], key[64];
     int i = 0, value = cleo->ReadParam(handle)->i;
     cleo->ReadStringLong(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
@@ -109,6 +111,7 @@ CLEO_Fn(WRITE_INT_TO_INI_FILE)
 
 CLEO_Fn(READ_FLOAT_FROM_INI_FILE)
 {
+    inipp::Ini<char> ini;
     char filename[128], section[64], key[64];
     float result = 0.0f; int i = 0;
     cleo->ReadStringLong(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
@@ -130,6 +133,7 @@ CLEO_Fn(READ_FLOAT_FROM_INI_FILE)
 
 CLEO_Fn(WRITE_FLOAT_TO_INI_FILE)
 {
+    inipp::Ini<char> ini;
     char filename[128], section[64], key[64];
     int i = 0; float value = cleo->ReadParam(handle)->f;
     cleo->ReadStringLong(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
@@ -154,6 +158,7 @@ CLEO_Fn(WRITE_FLOAT_TO_INI_FILE)
 char valRes[100];
 CLEO_Fn(READ_STRING_FROM_INI_FILE)
 {
+    inipp::Ini<char> ini;
     char filename[128], section[64], key[64];
     valRes[0] = 0; int i = 0;
     cleo->ReadStringLong(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
@@ -185,6 +190,7 @@ CLEO_Fn(READ_STRING_FROM_INI_FILE)
 
 CLEO_Fn(WRITE_STRING_TO_INI_FILE)
 {
+    inipp::Ini<char> ini;
     char filename[128], section[64], key[64], value[128] {0};
     int i = 0;
     CLEO_ReadStringEx(handle, value, sizeof(value));
