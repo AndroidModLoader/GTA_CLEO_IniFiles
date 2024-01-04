@@ -4,7 +4,6 @@
 #include <fstream>
 
 #include "thirdparty/inipp.h"
-//inipp::Ini<char> ini;
 
 #include "cleo.h"
 cleo_ifs_t* cleo = nullptr;
@@ -268,7 +267,7 @@ extern "C" void OnModLoad()
         return;
     }
     
-    sConfigsRoot = aml->GetAndroidDataPath(); //cleo->GetCleoStorageDir(); // Nope, this guy cant handle this correctly
+    sConfigsRoot = cleo->GetCleoStorageDir();
 
     CLEO_RegisterOpcode(0x0AF0, READ_INT_FROM_INI_FILE); // 0AF0=4,%4d% = read_int_from_ini_file %1s% section %2s% key %3s%
     CLEO_RegisterOpcode(0x0AF1, WRITE_INT_TO_INI_FILE); // 0AF1=4,write_int %1d% to_ini_file %2s% section %3s% key %4s%
