@@ -11,7 +11,7 @@ cleo_ifs_t* cleo = nullptr;
 
 MYMOD(net.alexblade.rusjj.inifiles, CLEO4 IniFiles, 1.2, Alexander Blade & RusJJ)
 BEGIN_DEPLIST()
-    ADD_DEPENDENCY_VER(net.rusjj.cleolib, 2.0.1.3)
+    ADD_DEPENDENCY_VER(net.rusjj.cleolib, 2.0.1.4)
 END_DEPLIST()
 
 #define CLEO_RegisterOpcode(x, h) cleo->RegisterOpcode(x, h); cleo->RegisterOpcodeFunction(#h, h)
@@ -30,34 +30,50 @@ inline int GetPCOffset()
         default: return 16;
     }
 }
+inline uint8_t*& GetPC(void* handle)
+{
+    return *(uint8_t**)((uintptr_t)handle + GetPCOffset());
+}
+inline uint8_t* GetPC_CLEO(void* handle) // weird-ass trash from CLEO for VC *facepalm*
+{
+    return (uint8_t*)cleo->GetRealCodePointer(*(uint32_t*)((uintptr_t)handle + GetPCOffset()));
+}
 inline char* CLEO_ReadStringEx(void* handle, char* buf, size_t size)
 {
-    uint8_t byte = **(uint8_t**)((int)handle + GetPCOffset());
-    if(byte <= 8) return NULL; // Not a string
+    uint8_t byte = *(cleo->GetGameIdentifier() == GTASA ? GetPC(handle) : GetPC_CLEO(handle));
 
     static char newBuf[128];
     if(!buf || size < 1) buf = (char*)newBuf;
 
     switch(byte)
     {
-        case 0x9:
-            cleo->ReadParam(handle); // Need to collect results before that
-            return cleo->ReadString8byte(handle, buf, size) ? buf : NULL;
+        default:
+            return cleo->ReadStringLong(handle, buf, size) ? buf : NULL;
             
-        case 0xA:
-        case 0xB:
-        case 0x10:
-        case 0x11:
+        case 0x09:
+            GetPC(handle) += 1;
+            return cleo->ReadString8byte(handle, buf, size) ? buf : NULL;
+
+        case 0x0A:
+        case 0x0B:
+        case 0x0C:
+        case 0x0D:
         {
-            size = (size > 16) ? 16 : size;
+            size = (size > 8) ? 8 : size;
             memcpy(buf, (char*)cleo->GetPointerToScriptVar(handle), size);
             buf[size-1] = 0;
             return buf;
         }
 
-        default:
+        case 0x10:
+        case 0x11:
+        case 0x12:
+        case 0x13:
         {
-            return cleo->ReadStringLong(handle, buf, size) ? buf : NULL;
+            size = (size > 16) ? 16 : size;
+            memcpy(buf, (char*)cleo->GetPointerToScriptVar(handle), size);
+            buf[size-1] = 0;
+            return buf;
         }
     }
     return buf;
@@ -81,6 +97,7 @@ CLEO_Fn(READ_INT_FROM_INI_FILE)
     {
         ini.parse(is);
         inipp::get_value(ini.sections[section], key, result);
+        is.close();
     }
     cleo->GetPointerToScriptVar(handle)->i = result;
 }
@@ -99,14 +116,23 @@ CLEO_Fn(WRITE_INT_TO_INI_FILE)
         ++i;
     }
     std::ifstream is((sConfigsRoot + filename).c_str());
-    if(is.is_open()) ini.parse(is);
+    if(is.is_open())
+    {
+        ini.parse(is);
+        is.close();
+    }
     else ini.clear();
 
     sprintf(szConvertedValue, "%d", value);
     ini.sections[section][key] = szConvertedValue;
 
     std::ofstream os((sConfigsRoot + filename).c_str());
-    if(os.is_open()) ini.generate(os);
+    if(os.is_open())
+    {
+        ini.generate(os);
+        os.flush();
+        os.close();
+    }
 }
 
 CLEO_Fn(READ_FLOAT_FROM_INI_FILE)
@@ -127,6 +153,7 @@ CLEO_Fn(READ_FLOAT_FROM_INI_FILE)
     {
         ini.parse(is);
         inipp::get_value(ini.sections[section], key, result);
+        is.close();
     }
     cleo->GetPointerToScriptVar(handle)->f = result;
 }
@@ -145,14 +172,23 @@ CLEO_Fn(WRITE_FLOAT_TO_INI_FILE)
         ++i;
     }
     std::ifstream is((sConfigsRoot + filename).c_str());
-    if(is.is_open()) ini.parse(is);
+    if(is.is_open())
+    {
+        ini.parse(is);
+        is.close();
+    }
     else ini.clear();
 
     sprintf(szConvertedValue, "%f", value);
     ini.sections[section][key] = szConvertedValue;
 
     std::ofstream os((sConfigsRoot + filename).c_str());
-    if(os.is_open()) ini.generate(os);
+    if(os.is_open())
+    {
+        ini.generate(os);
+        os.flush();
+        os.close();
+    }
 }
 
 char valRes[100];
@@ -174,6 +210,7 @@ CLEO_Fn(READ_STRING_FROM_INI_FILE)
     {
         ini.parse(is);
         sprintf(valRes, "%s", ini.sections[section][key].c_str());
+        is.close();
     }
 
     if(**(uint8_t**)((int)handle + GetPCOffset()) > 8)
@@ -203,13 +240,22 @@ CLEO_Fn(WRITE_STRING_TO_INI_FILE)
         ++i;
     }
     std::ifstream is((sConfigsRoot + filename).c_str());
-    if(is.is_open()) ini.parse(is);
+    if(is.is_open())
+    {
+        ini.parse(is);
+        is.close();
+    }
     else ini.clear();
 
     ini.sections[section][key] = value;
 
     std::ofstream os((sConfigsRoot + filename).c_str());
-    if(os.is_open()) ini.generate(os);
+    if(os.is_open())
+    {
+        ini.generate(os);
+        os.flush();
+        os.close();
+    }
 }
 
 extern "C" void OnModLoad()
