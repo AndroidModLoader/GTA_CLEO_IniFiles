@@ -83,9 +83,9 @@ CLEO_Fn(READ_INT_FROM_INI_FILE)
     inipp::Ini<char> ini;
     char filename[128], section[64], key[64];
     int result = 0, i = 0;
-    cleo->ReadStringLong(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
-    cleo->ReadStringLong(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
-    cleo->ReadStringLong(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
+    CLEO_ReadStringEx(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
+    CLEO_ReadStringEx(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
+    CLEO_ReadStringEx(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
     while(filename[i] != 0) // A little hack
     {
         if(filename[i] == '\\') filename[i] = '/';
@@ -106,9 +106,9 @@ CLEO_Fn(WRITE_INT_TO_INI_FILE)
     inipp::Ini<char> ini;
     char filename[128], section[64], key[64];
     int i = 0, value = cleo->ReadParam(handle)->i;
-    cleo->ReadStringLong(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
-    cleo->ReadStringLong(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
-    cleo->ReadStringLong(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
+    CLEO_ReadStringEx(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
+    CLEO_ReadStringEx(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
+    CLEO_ReadStringEx(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
     while(filename[i] != 0) // A little hack
     {
         if(filename[i] == '\\') filename[i] = '/';
@@ -139,9 +139,9 @@ CLEO_Fn(READ_FLOAT_FROM_INI_FILE)
     inipp::Ini<char> ini;
     char filename[128], section[64], key[64];
     float result = 0.0f; int i = 0;
-    cleo->ReadStringLong(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
-    cleo->ReadStringLong(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
-    cleo->ReadStringLong(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
+    CLEO_ReadStringEx(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
+    CLEO_ReadStringEx(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
+    CLEO_ReadStringEx(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
     while(filename[i] != 0) // A little hack
     {
         if(filename[i] == '\\') filename[i] = '/';
@@ -162,9 +162,9 @@ CLEO_Fn(WRITE_FLOAT_TO_INI_FILE)
     inipp::Ini<char> ini;
     char filename[128], section[64], key[64];
     int i = 0; float value = cleo->ReadParam(handle)->f;
-    cleo->ReadStringLong(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
-    cleo->ReadStringLong(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
-    cleo->ReadStringLong(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
+    CLEO_ReadStringEx(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
+    CLEO_ReadStringEx(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
+    CLEO_ReadStringEx(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
     while(filename[i] != 0) // A little hack
     {
         if(filename[i] == '\\') filename[i] = '/';
@@ -196,9 +196,9 @@ CLEO_Fn(READ_STRING_FROM_INI_FILE)
     inipp::Ini<char> ini;
     char filename[128], section[64], key[64];
     valRes[0] = 0; int i = 0;
-    cleo->ReadStringLong(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
-    cleo->ReadStringLong(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
-    cleo->ReadStringLong(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
+    CLEO_ReadStringEx(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
+    CLEO_ReadStringEx(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
+    CLEO_ReadStringEx(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
     while(filename[i] != 0) // A little hack
     {
         if(filename[i] == '\\') filename[i] = '/';
@@ -230,9 +230,9 @@ CLEO_Fn(WRITE_STRING_TO_INI_FILE)
     char filename[128], section[64], key[64], value[128] {0};
     int i = 0;
     CLEO_ReadStringEx(handle, value, sizeof(value));
-    cleo->ReadStringLong(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
-    cleo->ReadStringLong(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
-    cleo->ReadStringLong(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
+    CLEO_ReadStringEx(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
+    CLEO_ReadStringEx(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
+    CLEO_ReadStringEx(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
     while(filename[i] != 0) // A little hack
     {
         if(filename[i] == '\\') filename[i] = '/';
