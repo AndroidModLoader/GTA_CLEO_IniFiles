@@ -10,7 +10,7 @@ cleo_ifs_t* cleo = nullptr;
 
 MYMOD(net.alexblade.rusjj.inifiles, CLEO4 IniFiles, 1.2, Alexander Blade & RusJJ)
 BEGIN_DEPLIST()
-    ADD_DEPENDENCY_VER(net.rusjj.cleolib, 2.0.1.4)
+    ADD_DEPENDENCY_VER(net.rusjj.cleolib, 2.0.1.5)
 END_DEPLIST()
 
 #define CLEO_RegisterOpcode(x, h) cleo->RegisterOpcode(x, h); cleo->RegisterOpcodeFunction(#h, h)
@@ -48,6 +48,16 @@ inline char* CLEO_ReadStringEx(void* handle, char* buf, size_t size)
     {
         default:
             return cleo->ReadStringLong(handle, buf, size) ? buf : NULL;
+
+        case 0x01:
+        case 0x02:
+        case 0x03:
+        case 0x04:
+        case 0x05:
+        case 0x06:
+        case 0x07:
+        case 0x08:
+            return (char*)cleo->ReadParam(handle)->i;
             
         case 0x09:
             GetPC(handle) += 1;
