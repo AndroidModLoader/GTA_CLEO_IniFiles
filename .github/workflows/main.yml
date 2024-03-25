@@ -29,6 +29,11 @@ jobs:
       with:
         args: -O ./cleo.h https://github.com/AndroidModLoader/GTA_CLEOMod/raw/RUSJJ_CLEO_MOD/cleo.h
 
+    - name: Get CLEOMod - Addon Interface...
+      uses: wei/wget@v1
+      with:
+        args: -O ./cleoaddon.h https://github.com/AndroidModLoader/GTA_CLEOMod/raw/RUSJJ_CLEO_MOD/cleoaddon.h
+
     - name: Install Android NDK (r24)...
       uses: nttld/setup-ndk@v1.2.0
       with:

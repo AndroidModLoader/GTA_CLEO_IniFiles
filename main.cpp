@@ -8,9 +8,12 @@
 #include "cleo.h"
 cleo_ifs_t* cleo = nullptr;
 
-MYMOD(net.alexblade.rusjj.inifiles, CLEO4 IniFiles, 1.2, Alexander Blade & RusJJ)
+#include "cleoaddon.h"
+cleo_addon_ifs_t* cleoaddon = nullptr;
+
+MYMOD(net.alexblade.rusjj.inifiles, CLEO4 IniFiles, 1.3, Alexander Blade & RusJJ)
 BEGIN_DEPLIST()
-    ADD_DEPENDENCY_VER(net.rusjj.cleolib, 2.0.1.5)
+    ADD_DEPENDENCY_VER(net.rusjj.cleolib, 2.0.1.6)
 END_DEPLIST()
 
 #define CLEO_RegisterOpcode(x, h) cleo->RegisterOpcode(x, h); cleo->RegisterOpcodeFunction(#h, h)
@@ -19,83 +22,14 @@ END_DEPLIST()
 std::string sConfigsRoot;
 static char szConvertedValue[16];
 
-inline int GetPCOffset()
-{
-    switch(cleo->GetGameIdentifier())
-    {
-        case GTASA: return 20;
-        case GTALCS: return 24;
-
-        default: return 16;
-    }
-}
-inline uint8_t*& GetPC(void* handle)
-{
-    return *(uint8_t**)((uintptr_t)handle + GetPCOffset());
-}
-inline uint8_t* GetPC_CLEO(void* handle) // weird-ass trash from CLEO for VC *facepalm*
-{
-    return (uint8_t*)cleo->GetRealCodePointer(*(uint32_t*)((uintptr_t)handle + GetPCOffset()));
-}
-inline char* CLEO_ReadStringEx(void* handle, char* buf, size_t size)
-{
-    uint8_t byte = *(cleo->GetGameIdentifier() == GTASA ? GetPC(handle) : GetPC_CLEO(handle));
-
-    static char newBuf[128];
-    if(!buf || size < 1) buf = (char*)newBuf;
-
-    switch(byte)
-    {
-        default:
-            return cleo->ReadStringLong(handle, buf, size) ? buf : NULL;
-
-        case 0x01:
-        case 0x02:
-        case 0x03:
-        case 0x04:
-        case 0x05:
-        case 0x06:
-        case 0x07:
-        case 0x08:
-            return (char*)cleo->ReadParam(handle)->i;
-            
-        case 0x09:
-            GetPC(handle) += 1;
-            return cleo->ReadString8byte(handle, buf, size) ? buf : NULL;
-
-        case 0x0A:
-        case 0x0B:
-        case 0x0C:
-        case 0x0D:
-        {
-            size = (size > 8) ? 8 : size;
-            memcpy(buf, (char*)cleo->GetPointerToScriptVar(handle), size);
-            buf[size-1] = 0;
-            return buf;
-        }
-
-        case 0x10:
-        case 0x11:
-        case 0x12:
-        case 0x13:
-        {
-            size = (size > 16) ? 16 : size;
-            memcpy(buf, (char*)cleo->GetPointerToScriptVar(handle), size);
-            buf[size-1] = 0;
-            return buf;
-        }
-    }
-    return buf;
-}
-
 CLEO_Fn(READ_INT_FROM_INI_FILE)
 {
     inipp::Ini<char> ini;
     char filename[128], section[64], key[64];
     int result = 0, i = 0;
-    CLEO_ReadStringEx(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
-    CLEO_ReadStringEx(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
-    CLEO_ReadStringEx(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
+    cleoaddon->ReadString(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
+    cleoaddon->ReadString(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
+    cleoaddon->ReadString(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
     while(filename[i] != 0) // A little hack
     {
         if(filename[i] == '\\') filename[i] = '/';
@@ -116,9 +50,9 @@ CLEO_Fn(WRITE_INT_TO_INI_FILE)
     inipp::Ini<char> ini;
     char filename[128], section[64], key[64];
     int i = 0, value = cleo->ReadParam(handle)->i;
-    CLEO_ReadStringEx(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
-    CLEO_ReadStringEx(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
-    CLEO_ReadStringEx(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
+    cleoaddon->ReadString(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
+    cleoaddon->ReadString(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
+    cleoaddon->ReadString(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
     while(filename[i] != 0) // A little hack
     {
         if(filename[i] == '\\') filename[i] = '/';
@@ -149,9 +83,9 @@ CLEO_Fn(READ_FLOAT_FROM_INI_FILE)
     inipp::Ini<char> ini;
     char filename[128], section[64], key[64];
     float result = 0.0f; int i = 0;
-    CLEO_ReadStringEx(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
-    CLEO_ReadStringEx(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
-    CLEO_ReadStringEx(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
+    cleoaddon->ReadString(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
+    cleoaddon->ReadString(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
+    cleoaddon->ReadString(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
     while(filename[i] != 0) // A little hack
     {
         if(filename[i] == '\\') filename[i] = '/';
@@ -172,9 +106,9 @@ CLEO_Fn(WRITE_FLOAT_TO_INI_FILE)
     inipp::Ini<char> ini;
     char filename[128], section[64], key[64];
     int i = 0; float value = cleo->ReadParam(handle)->f;
-    CLEO_ReadStringEx(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
-    CLEO_ReadStringEx(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
-    CLEO_ReadStringEx(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
+    cleoaddon->ReadString(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
+    cleoaddon->ReadString(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
+    cleoaddon->ReadString(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
     while(filename[i] != 0) // A little hack
     {
         if(filename[i] == '\\') filename[i] = '/';
@@ -206,9 +140,9 @@ CLEO_Fn(READ_STRING_FROM_INI_FILE)
     inipp::Ini<char> ini;
     char filename[128], section[64], key[64];
     valRes[0] = 0; int i = 0;
-    CLEO_ReadStringEx(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
-    CLEO_ReadStringEx(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
-    CLEO_ReadStringEx(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
+    cleoaddon->ReadString(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
+    cleoaddon->ReadString(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
+    cleoaddon->ReadString(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
     while(filename[i] != 0) // A little hack
     {
         if(filename[i] == '\\') filename[i] = '/';
@@ -222,7 +156,7 @@ CLEO_Fn(READ_STRING_FROM_INI_FILE)
         is.close();
     }
 
-    if(**(uint8_t**)((int)handle + GetPCOffset()) > 8)
+    if(*cleoaddon->GetScriptPC(handle) > 8)
     {
         char* dst = (char*)cleo->GetPointerToScriptVar(handle);
         memcpy(dst, valRes, 15); dst[15] = 0;
@@ -239,10 +173,10 @@ CLEO_Fn(WRITE_STRING_TO_INI_FILE)
     inipp::Ini<char> ini;
     char filename[128], section[64], key[64], value[128] {0};
     int i = 0;
-    CLEO_ReadStringEx(handle, value, sizeof(value));
-    CLEO_ReadStringEx(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
-    CLEO_ReadStringEx(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
-    CLEO_ReadStringEx(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
+    cleoaddon->ReadString(handle, value, sizeof(value));
+    cleoaddon->ReadString(handle, filename, sizeof(filename)); filename[sizeof(filename)-1] = 0;
+    cleoaddon->ReadString(handle, section, sizeof(section)); section[sizeof(section)-1] = 0;
+    cleoaddon->ReadString(handle, key, sizeof(key)); key[sizeof(key)-1] = 0;
     while(filename[i] != 0) // A little hack
     {
         if(filename[i] == '\\') filename[i] = '/';
@@ -274,6 +208,11 @@ extern "C" void OnModLoad()
     if(!(cleo = (cleo_ifs_t*)GetInterface("CLEO")))
     {
         logger->Error("Cannot load a mod: CLEO's interface is unknown!");
+        return;
+    }
+    if(!(cleoaddon = (cleo_addon_ifs_t*)GetInterface("CLEOAddon")))
+    {
+        logger->Error("Cannot load a mod: CLEO's Addon interface is unknown!");
         return;
     }
     
