@@ -2,6 +2,8 @@
 #include <mod/logger.h>
 
 #include <fstream>
+#include <dirent.h>
+#include <sys/stat.h>
 
 #include "thirdparty/inipp.h"
 
@@ -10,6 +12,29 @@ cleo_ifs_t* cleo = nullptr;
 
 #include "cleoaddon.h"
 cleo_addon_ifs_t* cleoaddon = nullptr;
+
+inline int mkpath(char* file_path, mode_t mode)
+{
+    for (char* p = strchr(file_path + 1, '/'); p; p = strchr(p + 1, '/'))
+    {
+        *p = '\0';
+        if (mkdir(file_path, mode) == -1)
+        {
+            if (errno != EEXIST)
+            {
+                *p = '/';
+                return -1;
+            }
+        }
+        *p = '/';
+    }
+    return 0;
+}
+inline std::string PathWithoutFile(std::string fullpath)
+{
+    size_t found = fullpath.find_last_of("/\\");
+    return fullpath.substr(0, found);
+}
 
 MYMOD(net.alexblade.rusjj.inifiles, CLEO4 IniFiles, 1.3, Alexander Blade & RusJJ)
 BEGIN_DEPLIST()
@@ -58,6 +83,18 @@ CLEO_Fn(WRITE_INT_TO_INI_FILE)
         if(filename[i] == '\\') filename[i] = '/';
         ++i;
     }
+
+    // Create dir if not exists? start
+    std::string fullpath = PathWithoutFile(sConfigsRoot + filename);
+    DIR* dir = opendir(fullpath.c_str());
+    if(!dir)
+    {
+        char fullpath_c[256];
+        snprintf(fullpath_c, sizeof(fullpath_c), "%s", fullpath.c_str());
+        mkpath(fullpath_c, 0777);
+    } else closedir(dir);
+    // Create dir if not exists? end
+
     std::ifstream is((sConfigsRoot + filename).c_str());
     if(is.is_open())
     {
@@ -114,6 +151,18 @@ CLEO_Fn(WRITE_FLOAT_TO_INI_FILE)
         if(filename[i] == '\\') filename[i] = '/';
         ++i;
     }
+
+    // Create dir if not exists? start
+    std::string fullpath = PathWithoutFile(sConfigsRoot + filename);
+    DIR* dir = opendir(fullpath.c_str());
+    if(!dir)
+    {
+        char fullpath_c[256];
+        snprintf(fullpath_c, sizeof(fullpath_c), "%s", fullpath.c_str());
+        mkpath(fullpath_c, 0777);
+    } else closedir(dir);
+    // Create dir if not exists? end
+
     std::ifstream is((sConfigsRoot + filename).c_str());
     if(is.is_open())
     {
@@ -182,6 +231,18 @@ CLEO_Fn(WRITE_STRING_TO_INI_FILE)
         if(filename[i] == '\\') filename[i] = '/';
         ++i;
     }
+
+    // Create dir if not exists? start
+    std::string fullpath = PathWithoutFile(sConfigsRoot + filename);
+    DIR* dir = opendir(fullpath.c_str());
+    if(!dir)
+    {
+        char fullpath_c[256];
+        snprintf(fullpath_c, sizeof(fullpath_c), "%s", fullpath.c_str());
+        mkpath(fullpath_c, 0777);
+    } else closedir(dir);
+    // Create dir if not exists? end
+    
     std::ifstream is((sConfigsRoot + filename).c_str());
     if(is.is_open())
     {
