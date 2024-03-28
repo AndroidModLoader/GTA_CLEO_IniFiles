@@ -13,27 +13,41 @@ cleo_ifs_t* cleo = nullptr;
 #include "cleoaddon.h"
 cleo_addon_ifs_t* cleoaddon = nullptr;
 
-inline int mkpath(char* file_path, mode_t mode)
+inline void CreateDirs(std::string root, const char* filename_with_dir)
 {
-    for (char* p = strchr(file_path + 1, '/'); p; p = strchr(p + 1, '/'))
+    std::string sFileDir = std::string(filename_with_dir);
+    size_t found = sFileDir.find_last_of("/");
+    if(found < 0) return; // Is not in any directories
+
+    sFileDir = sFileDir.substr(0, found);
+    std::string baseroot = root;
+    DIR* dir = opendir((root + sFileDir).c_str());
+    if(!dir)
     {
-        *p = '\0';
-        if (mkdir(file_path, mode) == -1)
+        char only_file_path[128];
+        snprintf(only_file_path, sizeof(only_file_path), "%s", sFileDir.c_str());
+
+        char* pch = strtok(only_file_path, "/");
+        if(pch)
         {
-            if (errno != EEXIST)
+            while(pch != NULL)
             {
-                *p = '/';
-                return -1;
+                baseroot += pch;
+                baseroot += '/';
+
+                mkdir(baseroot.c_str(), 0777);
+                pch = strtok(NULL, "/");
             }
         }
-        *p = '/';
+        else
+        {
+            mkdir(baseroot.c_str(), 0777);
+        }
     }
-    return 0;
-}
-inline std::string PathWithoutFile(std::string fullpath)
-{
-    size_t found = fullpath.find_last_of("/\\");
-    return fullpath.substr(0, found);
+    else
+    {
+        closedir(dir);
+    }
 }
 
 MYMOD(net.alexblade.rusjj.inifiles, CLEO4 IniFiles, 1.3, Alexander Blade & RusJJ)
@@ -44,7 +58,7 @@ END_DEPLIST()
 #define CLEO_RegisterOpcode(x, h) cleo->RegisterOpcode(x, h); cleo->RegisterOpcodeFunction(#h, h)
 #define CLEO_Fn(h) void h (void *handle, uint32_t *ip, uint16_t opcode, const char *name)  
 
-std::string sConfigsRoot;
+std::string sGameFilesRoot;
 static char szConvertedValue[16];
 
 CLEO_Fn(READ_INT_FROM_INI_FILE)
@@ -60,7 +74,12 @@ CLEO_Fn(READ_INT_FROM_INI_FILE)
         if(filename[i] == '\\') filename[i] = '/';
         ++i;
     }
-    std::ifstream is((sConfigsRoot + filename).c_str());
+
+    // Create dir if not exists? start
+    CreateDirs(sGameFilesRoot, filename);
+    // Create dir if not exists? end
+
+    std::ifstream is((sGameFilesRoot + filename).c_str());
     if(is.is_open())
     {
         ini.parse(is);
@@ -85,17 +104,10 @@ CLEO_Fn(WRITE_INT_TO_INI_FILE)
     }
 
     // Create dir if not exists? start
-    std::string fullpath = PathWithoutFile(sConfigsRoot + filename);
-    DIR* dir = opendir(fullpath.c_str());
-    if(!dir)
-    {
-        char fullpath_c[256];
-        snprintf(fullpath_c, sizeof(fullpath_c), "%s", fullpath.c_str());
-        mkpath(fullpath_c, 0777);
-    } else closedir(dir);
+    CreateDirs(sGameFilesRoot, filename);
     // Create dir if not exists? end
 
-    std::ifstream is((sConfigsRoot + filename).c_str());
+    std::ifstream is((sGameFilesRoot + filename).c_str());
     if(is.is_open())
     {
         ini.parse(is);
@@ -106,7 +118,7 @@ CLEO_Fn(WRITE_INT_TO_INI_FILE)
     sprintf(szConvertedValue, "%d", value);
     ini.sections[section][key] = szConvertedValue;
 
-    std::ofstream os((sConfigsRoot + filename).c_str());
+    std::ofstream os((sGameFilesRoot + filename).c_str(), std::ios::trunc);
     if(os.is_open())
     {
         ini.generate(os);
@@ -128,7 +140,12 @@ CLEO_Fn(READ_FLOAT_FROM_INI_FILE)
         if(filename[i] == '\\') filename[i] = '/';
         ++i;
     }
-    std::ifstream is((sConfigsRoot + filename).c_str());
+
+    // Create dir if not exists? start
+    CreateDirs(sGameFilesRoot, filename);
+    // Create dir if not exists? end
+
+    std::ifstream is((sGameFilesRoot + filename).c_str());
     if(is.is_open())
     {
         ini.parse(is);
@@ -153,17 +170,10 @@ CLEO_Fn(WRITE_FLOAT_TO_INI_FILE)
     }
 
     // Create dir if not exists? start
-    std::string fullpath = PathWithoutFile(sConfigsRoot + filename);
-    DIR* dir = opendir(fullpath.c_str());
-    if(!dir)
-    {
-        char fullpath_c[256];
-        snprintf(fullpath_c, sizeof(fullpath_c), "%s", fullpath.c_str());
-        mkpath(fullpath_c, 0777);
-    } else closedir(dir);
+    CreateDirs(sGameFilesRoot, filename);
     // Create dir if not exists? end
 
-    std::ifstream is((sConfigsRoot + filename).c_str());
+    std::ifstream is((sGameFilesRoot + filename).c_str());
     if(is.is_open())
     {
         ini.parse(is);
@@ -174,7 +184,7 @@ CLEO_Fn(WRITE_FLOAT_TO_INI_FILE)
     sprintf(szConvertedValue, "%f", value);
     ini.sections[section][key] = szConvertedValue;
 
-    std::ofstream os((sConfigsRoot + filename).c_str());
+    std::ofstream os((sGameFilesRoot + filename).c_str(), std::ios::trunc);
     if(os.is_open())
     {
         ini.generate(os);
@@ -197,7 +207,12 @@ CLEO_Fn(READ_STRING_FROM_INI_FILE)
         if(filename[i] == '\\') filename[i] = '/';
         ++i;
     }
-    std::ifstream is((sConfigsRoot + filename).c_str());
+
+    // Create dir if not exists? start
+    CreateDirs(sGameFilesRoot, filename);
+    // Create dir if not exists? end
+
+    std::ifstream is((sGameFilesRoot + filename).c_str());
     if(is.is_open())
     {
         ini.parse(is);
@@ -233,17 +248,10 @@ CLEO_Fn(WRITE_STRING_TO_INI_FILE)
     }
 
     // Create dir if not exists? start
-    std::string fullpath = PathWithoutFile(sConfigsRoot + filename);
-    DIR* dir = opendir(fullpath.c_str());
-    if(!dir)
-    {
-        char fullpath_c[256];
-        snprintf(fullpath_c, sizeof(fullpath_c), "%s", fullpath.c_str());
-        mkpath(fullpath_c, 0777);
-    } else closedir(dir);
+    CreateDirs(sGameFilesRoot, filename);
     // Create dir if not exists? end
     
-    std::ifstream is((sConfigsRoot + filename).c_str());
+    std::ifstream is((sGameFilesRoot + filename).c_str());
     if(is.is_open())
     {
         ini.parse(is);
@@ -253,7 +261,7 @@ CLEO_Fn(WRITE_STRING_TO_INI_FILE)
 
     ini.sections[section][key] = value;
 
-    std::ofstream os((sConfigsRoot + filename).c_str());
+    std::ofstream os((sGameFilesRoot + filename).c_str(), std::ios::trunc);
     if(os.is_open())
     {
         ini.generate(os);
@@ -277,8 +285,8 @@ extern "C" void OnModLoad()
         return;
     }
     
-    sConfigsRoot = aml->GetAndroidDataPath();
-    sConfigsRoot += "/";
+    sGameFilesRoot = aml->GetAndroidDataPath();
+    sGameFilesRoot += "/";
 
     CLEO_RegisterOpcode(0x0AF0, READ_INT_FROM_INI_FILE); // 0AF0=4,%4d% = read_int_from_ini_file %1s% section %2s% key %3s%
     CLEO_RegisterOpcode(0x0AF1, WRITE_INT_TO_INI_FILE); // 0AF1=4,write_int %1d% to_ini_file %2s% section %3s% key %4s%
