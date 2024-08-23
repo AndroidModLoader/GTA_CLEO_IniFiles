@@ -80,13 +80,16 @@ CLEO_Fn(READ_INT_FROM_INI_FILE)
     // Create dir if not exists? end
 
     std::ifstream is((sGameFilesRoot + filename).c_str());
+    bool didReadValue = false;
     if(is.is_open())
     {
         ini.parse(is);
-        inipp::get_value(ini.sections[section], key, result);
+        didReadValue = inipp::get_value(ini.sections[section], key, result);
         is.close();
     }
     cleo->GetPointerToScriptVar(handle)->i = result;
+    cleoaddon->UpdateCompareFlag(handle, didReadValue);
+    ini.clear();
 }
 
 CLEO_Fn(WRITE_INT_TO_INI_FILE)
@@ -125,6 +128,7 @@ CLEO_Fn(WRITE_INT_TO_INI_FILE)
         os.flush();
         os.close();
     }
+    ini.clear();
 }
 
 CLEO_Fn(READ_FLOAT_FROM_INI_FILE)
@@ -146,13 +150,16 @@ CLEO_Fn(READ_FLOAT_FROM_INI_FILE)
     // Create dir if not exists? end
 
     std::ifstream is((sGameFilesRoot + filename).c_str());
+    bool didReadValue = false;
     if(is.is_open())
     {
         ini.parse(is);
-        inipp::get_value(ini.sections[section], key, result);
+        didReadValue = inipp::get_value(ini.sections[section], key, result);
         is.close();
     }
     cleo->GetPointerToScriptVar(handle)->f = result;
+    cleoaddon->UpdateCompareFlag(handle, didReadValue);
+    ini.clear();
 }
 
 CLEO_Fn(WRITE_FLOAT_TO_INI_FILE)
@@ -191,6 +198,7 @@ CLEO_Fn(WRITE_FLOAT_TO_INI_FILE)
         os.flush();
         os.close();
     }
+    ini.clear();
 }
 
 char valRes[100];
@@ -213,23 +221,17 @@ CLEO_Fn(READ_STRING_FROM_INI_FILE)
     // Create dir if not exists? end
 
     std::ifstream is((sGameFilesRoot + filename).c_str());
+    bool didReadValue = false;
     if(is.is_open())
     {
         ini.parse(is);
         sprintf(valRes, "%s", ini.sections[section][key].c_str());
+        didReadValue = (valRes[0] != 0);
         is.close();
     }
-
-    if(*cleoaddon->GetScriptPC(handle) > 8)
-    {
-        char* dst = (char*)cleo->GetPointerToScriptVar(handle);
-        memcpy(dst, valRes, 15); dst[15] = 0;
-    }
-    else
-    {
-        char* dst = (char*)cleo->ReadParam(handle)->i;
-        strcpy(dst, valRes);
-    }
+    cleoaddon->WriteString(handle, valRes);
+    cleoaddon->UpdateCompareFlag(handle, didReadValue);
+    ini.clear();
 }
 
 CLEO_Fn(WRITE_STRING_TO_INI_FILE)
@@ -268,6 +270,7 @@ CLEO_Fn(WRITE_STRING_TO_INI_FILE)
         os.flush();
         os.close();
     }
+    ini.clear();
 }
 
 extern "C" void OnModLoad()
